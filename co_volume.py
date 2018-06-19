@@ -3,8 +3,12 @@ import matplotlib.pyplot as plt
 import os
 import shutil
 from astropy.cosmology import WMAP9 as cosmo
+from astropy.cosmology import z_at_value
+import astropy.units as u
 
 def fov(freq):
+	#frequency in in GHz
+	freq*=1e9
 	c = 3.e8
 	d = 12.
 	FOV = np.degrees(1.22*c/d/freq)*3600 #in arcsec
@@ -46,7 +50,10 @@ chan_width = float(content[8].split()[2]) #GHz
 beam_radius = float(content[5].split()[3])*np.sqrt(2)*float(content[2].split()[4]) # imsize [pix] * sqrt(2) * cell [''/pix]
 
 if (f1 > f2) : f1,f2 = f2,f1 # order asending
-f0 = abs(f1-f2)/2. # central frequency of the cube
+f0 = abs(f1+f2)/2. # central frequency of the cube
+
+FOV  = fov(f0) # freq in GHz FOV of the detector ["]
+
 
 ##### redshift coverage of the transition #######
 
@@ -61,24 +68,25 @@ if z2 > 0 : #proceed
 	#single cone 
 	Vol = 0.
 	dL1, dL2 = cosmo.luminosity_distance(z1).value, cosmo.luminosity_distance(z2).value # [Mpc], limits of the integration 
-	dist = np.linspace(dL1,dL2,nz)
+	nd = 100 # 100 elements for the integral
+	dist = np.linspace(dL1,dL2,nz) 
+	dd = abs(dL2-dL1)/nd #thinckes of the cone slice Mpc
 
-	dz = abs(dL2-dL1)/nz
-	for d in dist:
-		
+	
+	#print z_at_value(cosmo.luminosity_distance, dL1*u.Mpc)
+
+	#perfect detector case
+	for d in dist:  
+	
+		# volume element
+		z = z_at_value(cosmo.luminosity_distance, d*u.Mpc)
+		dS = np.pi*(FOV * d/ (1.+z)**2 )**2 
+		Volume += dS * dd #Mpc**3 physical
+		CO_Lum
 
 
 
 """
-	for i in range(np.size(distance)):
-	z = distance[i]
-	d =  cosmo.luminosity_distance(z) #Mpc
-
-	dS = np.pi*(FOV * d/ (1.+z)**2 )**2 #FOV in radians, dL in Gpc
-	d_dist = cosmo.luminosity_distance(z+dz) - cosmo.luminosity_distance(z)
-	Volume += dS * d_dist #Gpc**3 physical
-
-
 
 else: 
 	print "Transition outside the cube frequency range!"
@@ -89,21 +97,6 @@ else:
 n_sigma = 5 
 dv = 200 # signal width in km/s
 c = 3e5 # speed of ight in km/s
-
-
-
-
-
-	### signal 
-
-
-
-
-
-
-
-
-
 
 
 #### integrate over observation cone - physical FOV changes with redshift
