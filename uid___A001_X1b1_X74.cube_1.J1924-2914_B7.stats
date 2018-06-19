@@ -1,0 +1,9 @@
+cubename	uid___A001_X1b1_X74.cube_1.J1924-2914_B7.fits
+rms	0.000174795612111
+cell [arcsec, arcsec]	[ 0.19017877  0.19017877]
+beam_axes [pix, pix]	3.9117745616 3.29464185866
+beam_PA [deg]	-89.9059
+image_size [pix pix]	256 256
+channels	60
+frequency_range [GHz]		282.884649068 281.962774068
+channel_width [GHz]	0.0153645833333
