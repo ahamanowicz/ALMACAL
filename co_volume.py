@@ -14,19 +14,31 @@ def fov(freq):
 	FOV = np.degrees(1.22*c/d/freq)*3600 #in arcsec
 	return FOV
 
-def CO_Lum(Sline, dv):
-	# Sline = strength of the signal n*rms [Jy]
-	# dv  [km/s]
+def CO_Lum(z,fCO, Sline, dv=200):
+	
+	# z - line's redshift
+	# fCO -  rest frequency of the chosen transition [GHz] 
+	# Sline - strength of the signal n*rms [Jy]
+	# dv - velocity span of the signal [km/s]
+
 	# Lline [L_sol]
 
-	Lline = 1.04e-3 * Sline * dv * dL**2 * f
-	return Lline
+	dL = cosmo.luminosity_distance(z).value
+	f_obs = fCO/(1+z)
+	Lline = 1.04e-3 * Sline * dv * dL**2 * f_obs # L_sol
+	return Lline*u.astrophys.solLum
 
-def CO_Lum_prime(Lline, fJ):
+def CO_Lum_prime(Lline, fCO):
 	# LLine - result of CO_Lum 
-	# fJ - rest frequency of the line
+	# fCO - rest frequency of the chosen transition [GHz] 
 
-	Lline_prime = Lline/ 3.e-11 / fJ**3
+	Lline_prime = Lline/ 3.e-11 / fCO**3
+	return Lline_prime
+def CO_Lum_prime2(z,fCO, Sline, dv=200):
+	#K km/s pc^2
+	dL = cosmo.luminosity_distance(z).value
+	f_obs = fCO/(1+z)
+	Lline_prime = 3.25e7 * Sline * dv *  dL**2/(1+z)**3 / f_obs**2
 	return Lline_prime
 
 ######### Chose CO transition [GHz]
@@ -54,38 +66,45 @@ f0 = abs(f1+f2)/2. # central frequency of the cube
 
 FOV  = fov(f0) # freq in GHz FOV of the detector ["]
 
+Sline = 5 *rms # line strength
+dv = 200 # [km/s] width of the line 
 
 ##### redshift coverage of the transition #######
 
 co = CO[2] # CO transition central frequency [GHz]
 
-z1,z2 = co/f1-1, co/f2 -1
+z1,z2 = co/f2-1, co/f1 -1
 
 # safety
 if z2 > 0 : #proceed
 	if z1 < 0: z1 = 0 #if the transition lower limit dont fit the cube we start integrating at 0 
 
-	#single cone 
 	Vol = 0.
 	dL1, dL2 = cosmo.luminosity_distance(z1).value, cosmo.luminosity_distance(z2).value # [Mpc], limits of the integration 
 	nd = 100 # 100 elements for the integral
-	dist = np.linspace(dL1,dL2,nz) 
+	dist = np.linspace(dL1,dL2,nd) 
 	dd = abs(dL2-dL1)/nd #thinckes of the cone slice Mpc
 
-	
 	#print z_at_value(cosmo.luminosity_distance, dL1*u.Mpc)
-
+	
 	#perfect detector case
 	for d in dist:  
 	
 		# volume element
 		z = z_at_value(cosmo.luminosity_distance, d*u.Mpc)
 		dS = np.pi*(FOV * d/ (1.+z)**2 )**2 
-		Volume += dS * dd #Mpc**3 physical
-		CO_Lum
-
-
-
+		Vol += dS * dd #Mpc**3 physical
+		Vol_com = Vol *(1+z)**3 / 1e9 #Gpc
+		#col = CO_Lum(z,co,Sline)
+		#col_p = CO_Lum_prime(col.value, co)
+		col_p2 = CO_Lum_prime2(z,co, Sline, dv=200) # K km/s pc^2
+		#print np.log10(col_p), Vol_com/1e9
+		plt.plot(np.log10(col_p2),Vol_com, 'bo')
+		#print Vol/1e9, z, d
+		#\print Vol_com , np.log10(col_p2)
+plt.xlabel("L_CO' [K km/s pc^2]" )
+plt.ylabel('Volume comoving [Gpc^3]')
+plt.show()
 """
 
 else: 
