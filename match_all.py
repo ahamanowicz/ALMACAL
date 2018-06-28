@@ -19,7 +19,7 @@ matches_array=[]
 fig = plt.figure(1,figsize=(8,8))
 sn_a,w_a = [],[]
 
-Zmax = 700 #km/s
+#Zmax = 700 km/s
 
 
 for pref in cubes:
@@ -29,6 +29,9 @@ for pref in cubes:
 	mock = np.loadtxt(pref.replace(".fits","_mock.txt"),skiprows=2, dtype='str')
 	mock_s = np.loadtxt(pref.replace(".fits","_mock.txt"), usecols=(0,6,7),skiprows=2)
 	#print mock_s.T[1]
+
+	
+
 	plt.plot(mock_s.T[1],mock_s.T[2],'bo')
 	M =  np.shape(data)[0]
 	N = np.shape(mock)[0]
@@ -43,9 +46,12 @@ for pref in cubes:
 	a,b = content[3].split('\t')[1].split(' ')
 	a,b =float(a),float(b)
 	Mock,Match=[],[]
-
+	f1,f2 = float(content[7].split()[2]), float(content[7].split()[3])
+	Zmax = float(content[6].split()[1])
+	f0 = (f1+f2)/2.
+	dZmax = 700*1.e3/const.c *f0
 	g = open(pref+".out",'w')
-	h = open(pref+'.cand','w')
+	
 	for m in range(M):
 		line=''
 		#if data[m][28] >= 3.:
@@ -60,7 +66,7 @@ for pref in cubes:
 			dist = np.linalg.norm(np.array([X,Y]) - np.array([Xm,Ym]))
 			if dist <= np.sqrt(a**2 + b**2): # np.sqrt(3^2 + 3^2)
 				Z_dist = abs(Zm-Z)
-				if Z_dist <= Zmax:
+				if Z_dist <= dZmax:
 					
 					if str(n) not in Mock:
 						#print n
@@ -79,6 +85,17 @@ for pref in cubes:
 	#plt.legend()
 
 	g.close()
+
+	#print candidates
+	h = open(pref+'.cand','w')
+	for m in range(M):
+		line=''
+		if m not in Match:
+			Z = data[m][33]
+			line=str(m+1) +' X '+ data[m][31] + ' Y ' + data[m][32] + ' Z ' + data[m][33] +' S/N '+str(sn)+' width '+str(data[m][28]) + '\n'
+			if Z > 3 and Z < Zmax -3:
+				h.write(line)
+	h.close()
 	matches = np.size(Mock)
 	print "detected", M,"matched", matches, "multiple matches", np.size(Match)-matches
 	#print matches_array
