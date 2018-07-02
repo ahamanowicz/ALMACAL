@@ -40,7 +40,12 @@ def CO_Lum_prime2(z,fCO, Sline, dv=200):
 	f_obs = fCO/(1+z)
 	Lline_prime = 3.25e7 * Sline * dv *  dL**2/(1+z)**3 / f_obs**2
 	return Lline_prime
+def gaussian(x, mu, sig):
+    return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
+def sensitivity_function(r, Rmax):
+	I = np.cos(r/Rmax)
+	return I
 ######### Chose CO transition [GHz]
 # 0-CO(1-0) 1-CO (2-1) 2-CO(3-2) 3-CO(4-3) 4-CO(5-4) 5-CO(6-5) 6-CO(7-6)
 
@@ -61,6 +66,7 @@ f1,f2 = float(content[7].split()[2]), float(content[7].split()[3]) #GHz
 chan_width = float(content[8].split()[2]) #GHz
 beam_radius = float(content[5].split()[3])*np.sqrt(2)*float(content[2].split()[4]) # imsize [pix] * sqrt(2) * cell [''/pix]
 
+
 if (f1 > f2) : f1,f2 = f2,f1 # order asending
 f0 = abs(f1+f2)/2. # central frequency of the cube
 
@@ -71,13 +77,64 @@ dv = 200 # [km/s] width of the line
 
 ##### redshift coverage of the transition #######
 
-co = CO[2] # CO transition central frequency [GHz]
+#read in the Luminocity CO function values
+Z,LCO = np.loadtxt('Luminocity_CO_prime_'+str(i)+'.txt', unpack=True,skiprows=2)
+LCO *=Sline
+co = CO[i] # CO transition central frequency [GHz]
 
-z1,z2 = co/f2-1, co/f1 -1
-
+z1,z2 = co/f2-1, co/f1 -1 #z1 lower, z2 higher redshift
+dz = 4./100000.
+# for this range of z calculate the range of LCO'
 # safety
+#LCO table
+N = np.size(Z)
+
+#full volume probled by the cube
+nz = 100.
+dd = (z2-z1)/nz
+Vol_max=0
+for z in np.linspace(z1,z2,nz):
+	d = cosmo.luminosity_distance(z).value
+	Rmax = (FOV * d/ (1.+z)**2 )
+	dS=0
+	for r in np.linspace(0,Rmax,10):
+		dS+=2*np.pi*Rmax/10. / sensitivity_function(r, Rmax) 
+	Vol_max += dS * dd #Mpc**3 physical
+Vol_com_max = Vol_max *(1+z2)**3# / 1.e9 #Gpc
+
+
+
 if z2 > 0 : #proceed
 	if z1 < 0: z1 = 0 #if the transition lower limit dont fit the cube we start integrating at 0 
+	for n in range(N):
+		if Z[n] < z1:
+			Vol = 0
+		if Z[n] < z2 and Z[n] > z1:
+			dd = (Z[n]-z1)/nz
+			Vol = 0
+			for z in np.linspace(z1,Z[n],nz):
+				d = cosmo.luminosity_distance(z).value
+				Rmax = (FOV * d/ (1.+z)**2 )
+				dS=0
+				for r in np.linspace(0,Rmax,10):
+					dS+=2*np.pi*Rmax/10. / sensitivity_function(r, Rmax)
+				#dS = np.pi*(FOV * d/ (1.+z)**2 )**2 
+				Vol += dS * dd #Mpc**3 physical
+			Vol_com = Vol *(1+Z[n])**3 #/ 1e9 #G
+			plt.plot(LCO[n], Vol_com,'ro')
+		if Z[n] > z2:
+			if LCO[n] < 1e8:
+				#whole volume element
+				Vol = Vol_com_max
+				plt.plot(LCO[n], Vol_com_max,'bo')
+else: 	
+	print "Transition outside the cube frequency range!"
+	Volume = 0	
+#ideal case
+plt.show()
+
+"""
+ 
 
 	Vol = 0.
 	dL1, dL2 = cosmo.luminosity_distance(z1).value, cosmo.luminosity_distance(z2).value # [Mpc], limits of the integration 
@@ -106,10 +163,9 @@ plt.xlabel("L_CO' [K km/s pc^2]" )
 plt.ylabel('Volume comoving [Gpc^3]')
 plt.show()
 """
+"""
 
-else: 
-	print "Transition outside the cube frequency range!"
-	Volume = 0
+
 
 
 ####### signal redshift limit  ######
