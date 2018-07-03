@@ -102,9 +102,55 @@ Vol_max=0
 print r_max
 dr = r_max/10.
 
-z1=0.2
-z2=0.3
-rmax=30.
+d1 = cosmo.luminosity_distance(z1).value #dolna granica calkowania | fixed
+d2 = cosmo.luminosity_distance(z2).value
+print "f0",f0
+for i in range(np.size(Z)):
+	if abs(Z[i] - np.float(z2)) < 0.001 :
+		Lmax= LCO[i]
+	if abs(Z[i] - np.float(z1)) < 0.001 :
+		Lmin = LCO[i]
+print Lmax*1e-8, Lmin*1e-8
+Vol_max = 0
+print d1,d2
+L_small = np.array([])
+Z_small = np.array([])
+for z in np.linspace(z1,z2,100):
+
+	L_small=np.append(L_small,CO_Lum_prime2(z,co, Sline, dv=200))
+	Z_small = np.append(Z_small,z)
+#print L_small
+for r in np.linspace(0,r_max-dr,100): # r in arcsec
+	cr = sensitivity_function(r,mu=0.,sigma=sigma)#correction on intensity function rin arcsec
+	L = Lmin * cr
+	print L
+	for i in range(np.size(Z_small)):
+		#print L_small[i]
+		if abs(L_small[i] - np.float(L)) < 1e8 :
+			Lnew= L_small[i]
+			zlim=Z_small[i]
+	#print L/1e8, Lnew/1e8
+	d2 = cosmo.luminosity_distance(zlim).value
+	dd = (d2-d1)/nz
+	#print d2
+"""
+	if d2 > d1:
+
+		for d in np.linspace(d1,d2-dd,nz):
+				
+			#field of a ring in Mpc^2
+			z = z_at_value(cosmo.luminosity_distance, d*u.Mpc)
+			R1 = (np.radians(r/3600.) * d/ (1.+z)**2 ) #Mpc r " -> radians
+			R2 = (np.radians((r+dr)/3600.) * d/ (1.+z)**2 ) #Mpc 
+
+			Vol_max +=np.pi*(R2**2-R1**2)*dd
+			#print R1,R2	
+			#print sensitivity_function(r,mu=0.,sigma=sigma)
+		
+		#print d,d2
+
+print "Vol5", Vol_max
+
 for z in np.linspace(z1,z2-dd,nz):
 	dS=0	
 	d = cosmo.luminosity_distance(z).value
@@ -125,7 +171,7 @@ d1,d2 = cosmo.luminosity_distance(z1).value,  cosmo.luminosity_distance(z2).valu
 #print fov(f0), imsize_arcsec 
 r1,r2 =  np.radians(rmax/3600.) * d1/ (1.+z1)**2 , np.radians(rmax/3600.) * d2/ (1.+z2)**2 
 print d1,r1,d2,r2
-"""
+
 if z2 > 0 : #proceed
 	if z1 < 0: z1 = 0 #if the transition lower limit dont fit the cube we start integrating at 0 
 	for n in range(N):
