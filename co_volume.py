@@ -53,19 +53,22 @@ def sensitivity_function(r, mu, sigma):
 
 ### distance function:
 # z <  1.5
-X1 = np.linspace(0,1.5,500)
+X1 = np.linspace(0,1.5,1000)
 Y1 = cosmo.luminosity_distance(X1).value**2/(1+X1)
 coef1 = np.polyfit(X1,Y1,6)
 p1 = np.poly1d(coef1)
 
 # z > 1.5
-X2 = np.linspace(1.5,8,1000)
+X2 = np.linspace(1.5,5,2000)
 Y2 = cosmo.luminosity_distance(X2).value**2/(1+X2)
 coef2 = np.polyfit(X2,Y2,6)
 
 p2 = np.poly1d(coef2)
 Z = np.linspace(0,5,500)
-
+#plt.plot(Z,np.log10(p1(Z)), 'y')
+#plt.plot(Z,np.log10(p2(Z)),'g')
+#plt.plot(Z,np.log10(cosmo.luminosity_distance(Z).value**2/(1+Z)),'r',alpha=0.5)
+#plt.show()
 ######### Chose CO transition [GHz]
 # 0-CO(1-0) 1-CO (2-1) 2-CO(3-2) 3-CO(4-3) 4-CO(5-4) 5-CO(6-5) 6-CO(7-6)
 
@@ -131,35 +134,35 @@ ddd = d2/nz
 Vol_max=0
 LCO = 1e6
 #choosing the regime based on the LCO' value. np.log10(LCO') < lim p1 > lim p2
-lim = np.log10(CO_Lum_prime2(1.5,co, Sline, dv=200)) #is about 10^9.4
 
-print lim
 print "zlim",z1,z2
 print "LCOlim",  CO_Lum_prime2(z1,co, Sline, dv=200)/1.e8,CO_Lum_prime2(z2,co, Sline, dv=200)/1.e8
 print "LCO",LCO/1e8
-Z=np.linspace(0,15,1000)
-plt.plot(Z,np.log10(CO_Lum_prime2(Z,co, Sline, dv=200)))
+Z=np.linspace(0,10,1000)
+co=CO[3]
+Llim = np.log10(CO_Lum_prime2(1.5,co, Sline, dv=200)) # Luminocity limit for using different aproximaitons
+print "Llim", Llim
+
+#looks like Llum > 1e10 has for J> 3 is always full volume size
+for l in [1e6,1e7,1e8,1e9,1e10,1e11,1e12]:
+	if np.log10(l) < Llim : 
+		f = L_CO_prime_inv(l,co,1,Sline,dv=200) #get the value of dL^2/(1+z)
 
 
-for l in [1e6,1e7,1e8,1e9,1e10,5e10,1e11]:
-	f = L_CO_prime_inv(l,co,1,Sline,dv=200)
+		roots  = np.real((p1-f).roots) #find solutions 
 
-	roots  = np.real((p2-f).roots)
-	print np.log10(l),roots
-	for s in roots:
-		if s > 0 and s < 1.5: #for p1
-			print s
-		
+		positive_roots =[ n for n in roots if n > 0]
+		print np.log10(l),positive_roots
+		print min(positive_roots)
+	else:
+		f = L_CO_prime_inv(l,co,1,Sline,dv=200) #get the value of dL^2/(1+z)
+		roots  = np.real((p2-f).roots) 
+		positive_roots =[ n for n in roots if n > 1.5]
+		print np.log10(l),min(positive_roots)
+
+	# choosing whether the full volume of the cube is applicable for given luminocity
+
 #choosing right root
-
-
-	
-#print zlim
-plt.ylabel('log10(LCO prime)')
-plt.xlabel('z')
-plt.grid()
-plt.show()
-
 
 """"
 for r in np.linspace(0,r_max,nz): # r in arcsec

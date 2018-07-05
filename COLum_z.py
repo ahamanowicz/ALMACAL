@@ -25,7 +25,7 @@ for i in range(7):
 	g.write('#redshift \t LCOprime \n')
 	for z in z_space:
 
-		lum = CO_Lum_prime(z,co, Sline, dv=200)
+		lum = CO_Lum_prime(z,co, Sline, dv=200)/1e8
 	#	plt.plot(z,lum, 'ko')
 		g.write(str(round(z,5))+'\t'+str(lum)+'\n')
 
