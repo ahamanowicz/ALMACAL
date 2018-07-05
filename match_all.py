@@ -26,11 +26,9 @@ for pref in cubes:
 	#print pref
 	data=np.loadtxt(pref.replace(".fits","_results.txt"),comments='#',dtype='str')
 
-	mock = np.loadtxt(pref.replace(".fits","_mock.txt"),skiprows=2, dtype='str')
-	mock_s = np.loadtxt(pref.replace(".fits","_mock.txt"), usecols=(0,6,7),skiprows=2)
+	mock = np.loadtxt(pref.replace(".fits",".fits_mock.txt"),skiprows=2, dtype='str')
+	mock_s = np.loadtxt(pref.replace(".fits",".fits_mock.txt"), usecols=(0,6,7),skiprows=2)
 	#print mock_s.T[1]
-
-	
 
 	plt.plot(mock_s.T[1],mock_s.T[2],'bo')
 	M =  np.shape(data)[0]
@@ -49,9 +47,11 @@ for pref in cubes:
 	f1,f2 = float(content[7].split()[2]), float(content[7].split()[3])
 	Zmax = float(content[6].split()[1])
 	f0 = (f1+f2)/2.
-	dZmax = 700*1.e3/const.c *f0
+	dZmax = 700*1.e3/const.c *f0 #in GHz
+	dZmax = dZmax * Zmax / abs(f2-f1)
+	#print  dZmax, Zmax
 	g = open(pref+".out",'w')
-	
+	print pref
 	for m in range(M):
 		line=''
 		#if data[m][28] >= 3.:

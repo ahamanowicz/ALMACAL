@@ -41,11 +41,31 @@ def CO_Lum_prime2(z,fCO, Sline, dv=200):
 	Lline_prime = 3.25e7 * Sline * dv *  dL**2/(1+z)**3 / f_obs**2
 	return Lline_prime
 
+def L_CO_prime_inv(LCO,fCO,cr,Sline,dv=200):
+	func = LCO*cr*fCO**2/(3.25e7 * Sline * dv )
+	return func
+
 def sensitivity_function(r, mu, sigma):
 
 	I = np.exp(-np.power(r - mu, 2.) / (2 * np.power(sigma, 2.)))
 
 	return I
+
+### distance function:
+# z <  1.5
+X1 = np.linspace(0,1.5,500)
+Y1 = cosmo.luminosity_distance(X1).value**2/(1+X1)
+coef1 = np.polyfit(X1,Y1,6)
+p1 = np.poly1d(coef1)
+
+# z > 1.5
+X2 = np.linspace(1.5,8,1000)
+Y2 = cosmo.luminosity_distance(X2).value**2/(1+X2)
+coef2 = np.polyfit(X2,Y2,6)
+
+p2 = np.poly1d(coef2)
+Z = np.linspace(0,5,500)
+
 ######### Chose CO transition [GHz]
 # 0-CO(1-0) 1-CO (2-1) 2-CO(3-2) 3-CO(4-3) 4-CO(5-4) 5-CO(6-5) 6-CO(7-6)
 
@@ -53,8 +73,6 @@ CO = np.array([115.27,230.538, 354.796, 461.041, 576.268, 691.473, 806.652])
 
 # transition index 
 i = 2 # CO(3-2)
-
-
 
 ####### read data from the cube *stats file
 #single file (later change to whole sample or write short bash script)
@@ -84,8 +102,6 @@ dv = 200 # [km/s] width of the line
 ##### redshift coverage of the transition #######
 
 #read in the Luminocity CO function values
-Z,LCO = np.loadtxt('Luminocity_CO_prime_'+str(i)+'.txt', unpack=True,skiprows=2)
-LCO *=Sline
 co = CO[i] # CO transition central frequency [GHz]
 
 z1,z2 = co/f2-1, co/f1 -1 #z1 lower, z2 higher redshift
@@ -98,23 +114,93 @@ N = np.size(Z)
 #full volume probled by the cube
 nz = 100.
 dd = (z2-z1)/nz
-Vol_max=0
+
 print r_max
 dr = r_max/10.
 
-d1 = cosmo.luminosity_distance(z1).value #dolna granica calkowania | fixed
-d2 = cosmo.luminosity_distance(z2).value
-print "f0",f0
-for i in range(np.size(Z)):
-	if abs(Z[i] - np.float(z2)) < 0.001 :
-		Lmax= LCO[i]
-	if abs(Z[i] - np.float(z1)) < 0.001 :
-		Lmin = LCO[i]
-print Lmax*1e-8, Lmin*1e-8
-Vol_max = 0
-print d1,d2
-L_small = np.array([])
-Z_small = np.array([])
+Volume = np.zeros((np.size(Z)))
+
+d1 = cosmo.luminosity_distance(z1).value # lower distance limit
+d2 = cosmo.luminosity_distance(z2).value #higher distance limit
+
+#### Maximum volume - if dLlim > dL(z2) ####
+
+#integrating by hollow cilinders
+i=0
+ddd = d2/nz
+Vol_max=0
+LCO = 1e6
+#choosing the regime based on the LCO' value. np.log10(LCO') < lim p1 > lim p2
+lim = np.log10(CO_Lum_prime2(1.5,co, Sline, dv=200)) #is about 10^9.4
+
+print lim
+print "zlim",z1,z2
+print "LCOlim",  CO_Lum_prime2(z1,co, Sline, dv=200)/1.e8,CO_Lum_prime2(z2,co, Sline, dv=200)/1.e8
+print "LCO",LCO/1e8
+Z=np.linspace(0,15,1000)
+plt.plot(Z,np.log10(CO_Lum_prime2(Z,co, Sline, dv=200)))
+
+
+for l in [1e6,1e7,1e8,1e9,1e10,5e10,1e11]:
+	f = L_CO_prime_inv(l,co,1,Sline,dv=200)
+
+	roots  = np.real((p2-f).roots)
+	print np.log10(l),roots
+	for s in roots:
+		if s > 0 and s < 1.5: #for p1
+			print s
+		
+#choosing right root
+
+
+	
+#print zlim
+plt.ylabel('log10(LCO prime)')
+plt.xlabel('z')
+plt.grid()
+plt.show()
+
+
+""""
+for r in np.linspace(0,r_max,nz): # r in arcsec
+	cr = sensitivity_function(r, mu=0, sigma=sigma)
+	if  z2 < 1.5: 
+		p = p1
+	else:
+		p = p2
+	func_z = L_CO_prime_inv(LCO,co,cr,Sline,dv=200)
+	
+	root =  np.absolute((p-func_z).roots)
+	#print root
+	for s in root:
+		
+		if s  > z1 and s < z2 :
+			zlim = s
+
+
+	#print "zlim", zlim
+	if zlim != 0:
+		dlim = cosmo.luminosity_distance(zlim).value
+		d1_prime = ddd * i #lower limit
+
+		#plt.plot(r,d1_prime,'ro')
+		#plt.plot(r,dlim,'bo')
+		if d1_prime < d1:
+			d1_prime = d1
+		
+		h  = dlim - d1_prime # height of the element cilinder
+
+		zlim = z_at_value(cosmo.luminosity_distance, dlim*u.Mpc)
+		if h > 0:
+			R = (np.radians(r/3600.) * dlim/ (1.+zlim)**2 )
+			dR = (np.radians(dr/3600.) * dlim/ (1.+zlim)**2 )
+			Vol_max += 2*np.pi*dR*R*h
+
+	i+=1
+print Vol_max
+#plt.axhline(d1)
+#plt.show()
+
 for z in np.linspace(z1,z2,100):
 
 	L_small=np.append(L_small,CO_Lum_prime2(z,co, Sline, dv=200))
@@ -133,7 +219,7 @@ for r in np.linspace(0,r_max-dr,100): # r in arcsec
 	d2 = cosmo.luminosity_distance(zlim).value
 	dd = (d2-d1)/nz
 	#print d2
-"""
+
 	if d2 > d1:
 
 		for d in np.linspace(d1,d2-dd,nz):
