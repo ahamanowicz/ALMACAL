@@ -2,7 +2,7 @@ from astropy.cosmology import WMAP9 as cosmo
 from astropy.cosmology import z_at_value
 import numpy as np
 import astropy.units as u
-
+import matplotlib.pyplot as plt
 def sensitivity_function(r, mu, sigma):
 
 	I = np.exp(-np.power(r - mu, 2.) / (2 * np.power(sigma, 2.)))
@@ -22,93 +22,105 @@ nz = 100
 dd = (z2-z1)/nz
 dr = r_max/nz
 
-"""
-d1 = cosmo.luminosity_distance(z1).value
-d2 = cosmo.luminosity_distance(z2).value
-R1 = (np.radians(r_max/3600.) * d1/ (1.+z1)**2 )
-R2 = (np.radians(r_max/3600.) * d2/ (1.+z2)**2 ) 
-Vol = 1./3.*np.pi*(d2-d1)*(R2**2 +R1*R2+R1**2)
-print "Vol1", Vol
-
-
 
 Vol_max=0
-dS=0
-
-
-#dd = (D2-D1)/nz
-
-for z in np.linspace(z1,z2-dd,nz):
- 	#z_at_value(cosmo.luminosity_distance,d*u.Mpc)
- 	d=cosmo.luminosity_distance(z).value
- 	
-	R = (np.radians(r_max/3600.) * d/ (1.+z)**2 )
-
-	d2 = cosmo.luminosity_distance(z+dd).value
-	R2 = (np.radians(r_max/3600.) * d2/ (1.+z+dd)**2 )
-	Vol_max+=np.pi*(R**2)*(d2-d)
-	
-print "Vol2", Vol_max
-Vol_max_2 = 0
-for z in np.linspace(z1,z2-dd,nz):
-	dS=0	
-	d = cosmo.luminosity_distance(z).value
-	for r in np.linspace(0,r_max-dr,100): # r in arcsec
-		cr = sensitivity_function(r,mu=0.,sigma=sigma)#correction on intensity function rin arcsec
-		#field of a ring in Mpc^2
-
-		R1 = (np.radians(r/3600.) * d/ (1.+z)**2 ) #Mpc r " -> radians
-		R2 = (np.radians((r+dr)/3600.) * d/ (1.+z)**2 ) #Mpc 
-
-		dS +=2*np.pi*R2*(R2-R1)*cr
-		#print R1,R2	
-		#print sensitivity_function(r,mu=0.,sigma=sigma)
-	
-	d2 = cosmo.luminosity_distance(z+dd).value
-	#print d,d2
-	Vol_max_2 += dS *(d2-d) #Mpc**3 physical
-print "Vol3",Vol_max_2
-
-Vol_max_3 = 0
-
-
-
-d1 = cosmo.luminosity_distance(z1).value
-d2 = cosmo.luminosity_distance(z2).value
-dx=(d2+d1)/2
-zx=(z2+z1)/2.
-dR = (np.radians(dr/3600.) * dx/ (1.+zx)**2 )
-for r in np.linspace(0,r_max-dr,nz): # r in arcsec
-	cr = sensitivity_function(r,mu=0.,sigma=sigma)#correction on intensity function rin arcsec
-	d1=cosmo.luminosity_distance(z1).value
-	d2=cosmo.luminosity_distance(z2).value *cr
-	h=d2-d1
-	#z2 = z_at_value(cosmo.luminosity_distance,d2*u.Mpc)
-	dR = (np.radians(dr/3600.) * d2/ (1.+z2)**2 )
-
-	#field of a ring in Mpc^2
-
-	R1 = (np.radians(r/3600.) * d1/ (1.+z1)**2 ) #Mpc r " -> radians
-	R2 = (np.radians(r/3600.) * d2/ (1.+z2)**2 ) #Mpc 
-
-	Vol_max_3 +=np.pi*np.sqrt(h**2 + (R2-R1)**2)*(R2+R1)*dR
-	#print R1,R2	
-	#print sensitivity_function(r,mu=0.,sigma=sigma)
-
-	#print d2, d2*cr
-	#print d,d2
-print"Vol4", Vol_max_3
-"""
+nz=100
 CO = np.array([115.27,230.538, 354.796, 461.041, 576.268, 691.473, 806.652])
 
 # transition index 
 i = 2 # CO(3-2)
 Z,LCO = np.loadtxt('Luminocity_CO_prime_'+str(i)+'.txt', unpack=True,skiprows=2)
-Vol_max_4 = 0
-nz = 100
-d1 = cosmo.luminosity_distance(z1).value #dolna granica calkowania | fixed
+
+dr = r_max/nz
+print dd
+dS = 0
+
+Vol = 0
+
+d1 = cosmo.luminosity_distance(z1).value
 d2 = cosmo.luminosity_distance(z2).value
-f0 = 282.4237
+print d1
+dL_lim_max =0
+z2=1.4
+a = cosmo.luminosity_distance(1).value**2/(1+1)
+
+print cosmo.luminosity_distance(1.5).value**2/(1+1.5), cosmo.luminosity_distance(2).value**2/(1+2)
+#parabola
+X1 = np.linspace(0,1.5,500)
+Y1 = cosmo.luminosity_distance(X1).value**2/(1+X1)
+coef1 = np.polyfit(X1,Y1,6)
+#print coef1
+p1 = np.poly1d(coef1)
+#linear
+X2 = np.linspace(1.5,8,1000)
+Y2 = cosmo.luminosity_distance(X2).value**2/(1+X2)
+coef2 = np.polyfit(X2,Y2,6)
+print coef2
+p2 = np.poly1d(coef2)
+Z = np.linspace(0,8,1000)
+
+y = 5.e7
+print (p1-y).roots
+
+for z in Z :
+	func = cosmo.luminosity_distance(z).value**2/(1+z)
+	plt.plot(z,func, 'ob', markersize=2, alpha=0.5)
+
+plt.plot(Z,p1(Z), 'r', label='approx1')	
+plt.plot(Z,p2(Z), 'g', label='approx2')	
+plt.legend()
+plt.xlabel("z")
+plt.ylabel(r"$d_{L}^{2}(1+z)^{-1}$")
+plt.show()
+
+for i in range(np.size(Z)):
+		if abs(Z[i] - np.float(z2)) < 1e-4:
+			print Z[i], LCO[i] 
+
+i=0
+ddd = d2/nz
+for r in np.linspace(0,r_max,nz): # r in arcsec
+	cr = sensitivity_function(r, mu=0, sigma=sigma)
+	dlim = d2*cr #upper limit
+	d1_prime = ddd * i #lower limit
+	if d1_prime < d1:
+		d1_prime = d1
+	
+	h  = dlim - d1_prime # height of the element cilinder
+	print dlim
+	zlim = z_at_value(cosmo.luminosity_distance, dlim*u.Mpc)
+	if h > 0:
+		
+		R = (np.radians(r/3600.) * dlim/ (1.+zlim)**2 )
+		dR = (np.radians(dr/3600.) * dlim/ (1.+zlim)**2 )
+		
+		Vol += 2*np.pi*dR*R * h
+
+
+	i+=1
+print Vol
+"""
+for r in np.linspace(0,r_max,nz): # r in arcsec
+	cr = sensitivity_function(r, mu=0, sigma=sigma)
+	dlim = d2*cr
+	dd = dlim - d1
+	
+
+	zlim = z_at_value(cosmo.luminosity_distance, dlim*u.Mpc)
+	if dd > 0:
+		print dlim
+		R = (np.radians(r/3600.) * dlim/ (1.+zlim)**2 )
+		dR = (np.radians(dr/3600.) * dlim/ (1.+zlim)**2 )
+		
+		Vol += 2*np.pi*dR*R * dd
+
+Rmax = 	(np.radians(r_max/3600.) * d2/ (1.+z2)**2 )
+
+Vol_real = Rmax**2 * d2 *np.pi/3.
+print "shells",Vol, "Real", Vol_real
+
+#dd = (D2-D1)/nz
+
 for i in range(np.size(Z)):
 	if abs(Z[i] - np.float(z2)) < 0.0001 :
 		Lmax= LCO[i]
@@ -143,3 +155,4 @@ for r in np.linspace(0,r_max-dr,100): # r in arcsec
 		#print d,d2
 
 print "Vol5", Vol_max_4
+"""
