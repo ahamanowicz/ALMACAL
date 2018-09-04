@@ -26,8 +26,8 @@ for pref in cubes:
 	#print pref
 	data=np.loadtxt(pref.replace(".fits","_results.txt"),comments='#',dtype='str')
 
-	mock = np.loadtxt(pref.replace(".fits",".fits_mock.txt"),skiprows=2, dtype='str')
-	mock_s = np.loadtxt(pref.replace(".fits",".fits_mock.txt"), usecols=(0,6,7),skiprows=2)
+	mock = np.loadtxt(pref.replace(".fits","_mock.txt"),skiprows=2, dtype='str')
+	mock_s = np.loadtxt(pref.replace(".fits","_mock.txt"), usecols=(0,6,7),skiprows=2)
 	#print mock_s.T[1]
 
 	plt.plot(mock_s.T[1],mock_s.T[2],'bo')
@@ -50,8 +50,8 @@ for pref in cubes:
 	dZmax = 700*1.e3/const.c *f0 #in GHz
 	dZmax = dZmax * Zmax / abs(f2-f1)
 	#print  dZmax, Zmax
-	g = open(pref+".out",'w')
-	print pref
+	g = open(pref.replace("fits","out"),'w')
+	
 	for m in range(M):
 		line=''
 		#if data[m][28] >= 3.:
@@ -87,17 +87,20 @@ for pref in cubes:
 	g.close()
 
 	#print candidates
-	h = open(pref+'.cand','w')
+	h = open(pref.replace('fits','cand'),'w')
 	for m in range(M):
 		line=''
-		if m not in Match:
+		if str(m) not in Match:
+
 			Z = data[m][33]
 			line=str(m+1) +' X '+ data[m][31] + ' Y ' + data[m][32] + ' Z ' + data[m][33] +' S/N '+str(sn)+' width '+str(data[m][28]) + '\n'
-			if Z > 3 and Z < Zmax -3:
+			
+			if float(Z) > 3. and float(Z) < Zmax -3.:
+				
 				h.write(line)
 	h.close()
 	matches = np.size(Mock)
-	print "detected", M,"matched", matches, "multiple matches", np.size(Match)-matches
+	print pref, "detected", M,"matched", matches, "multiple matches", np.size(Match)-matches
 	#print matches_array
 plt.xlabel("S/N")
 plt.ylabel("width [km/s]")
