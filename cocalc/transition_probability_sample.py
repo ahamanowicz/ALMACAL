@@ -30,10 +30,10 @@ def Mmol(Lco10,alpha=4.):
 	return Mmol
 
 def CO10_Lum_prime(z,Int_flux):
-	co = 115.27e9
+	co = 115.27
 
 	dL = cosmo.luminosity_distance(z).value
-	Lline_prime = 3.257e7 * Int_flux *  dL**2/(1+z)*co**2 #K km/s pc^2
+	Lline_prime = 3.257e7 * Int_flux *  dL**2/(1+z)/co**2 #K km/s pc^2
 
 	return Lline_prime
 
@@ -76,8 +76,11 @@ completnes_y = np.load("compeltnes_yedges.npy") #width km/s
 Nprob,COprob,Z=[],[],[]
 M=0
 S = np.size(cubes)
-#f.write("Detection_no, fobs, Int_flux, [J,z,prob, L'CO(J),L'CO(1-0), Mmol (ntimes)")
-transitions_array = np.zeros((S,10,5)) #[n_det][Jtrans][prob,L',z,L'(1-0),MH2]
+transitions_array = np.zeros((S,10,5)) #[n_det][Jtrans][prob, L',z,L'(1-0),completnes]
+
+#relaibility coeficient
+rel_coeff = 0.9 #comes from sofia | to be improved
+
 for s in range(S):
 
 	flux = int_flux[s] #mJy
@@ -88,7 +91,7 @@ for s in range(S):
 
 	#check completnes for detection parametes \
 	sn, w  = SN[s], Width[s]
-	print sn,w
+	#print sn,w
 	if w < 50. : w= min(completnes_y )
 	for k in range(np.size(completnes_x)-1):
 		x1,x2 = completnes_x[k],completnes_x[k+1]
@@ -100,13 +103,9 @@ for s in range(S):
 				y1,y2 = completnes_y[l],completnes_y[l+1]
 				#print y1,y2
 				if y1 <= w <= y2: y=l
-	print x,y	
-	comp = compeltnesH[y][x]
-	print sn,w,comp,x,y
-
-	"""
 	
-
+	comp_coef = compeltnesH[y][x] #completnes soefficient for a given detections 1/coeffishent is the actual nr of objects like that
+	#print "compl",comp_coef
 
 	for j in range(np.size(CO_label)):
 		jup=j+1
@@ -138,11 +137,11 @@ for s in range(S):
 							Z.append(z)
 							if jup > 1:
 								Ico10 = LCO10_H[y][x] #it is a log
-								lco10_prime = CO10_Lum_prime(z,10**Ico10)
+								lco10_prime = CO10_Lum_prime(z,(10**Ico10)/1.e3) #from mJy to Jy
 								LCO10.append(lco10_prime)
 							else:
 								
-								lco10_prime = CO10_Lum_prime(z,flux)
+								lco10_prime = CO10_Lum_prime(z,flux/1.e3)
 								LCO10.append(lco10_prime)
 							#print H.T[y][x], j 
 		elif z < 0:
@@ -155,7 +154,7 @@ for s in range(S):
 	Mnew=np.sum(Nprob/M)
 	Nprob_all = Nprob/M
 	LCO10 = np.array(LCO10,dtype='float')
-	print Nprob, LCO10
+	#print Nprob, LCO10
 	#f.write(cubes[s]+ " "+str(freq0)+" "+str(int_flux[s]))
 	for i in range(np.size(COprob)):
 		j = COprob[i]
@@ -164,23 +163,41 @@ for s in range(S):
 		jup = int(j) +1
 		if prob > 0: 
 			Lprime = CO_Lum_prime(z,freq0, flux)
-			MH2=Mmol(LCO10[i])
+			
 			L10prime = LCO10[i]
-			print "transition", CO_label[j], "z =", np.round(z,3), "probability", np.round(prob*100,3), "log(Lprime)", np.round(np.log10(Lprime),3), "log(Mmol)",np.round(np.log10(MH2),3),"log(L10prime)", np.round(np.log10(L10prime),3) 
+			print "transition", CO_label[j], "z =", np.round(z,3), "probability", np.round(prob*100,3), "log(Lprime)", np.round(np.log10(Lprime),3),"log(L10prime)", np.round(np.log10(L10prime),3) 
 			#f.write("transition", CO_label[j], "z =", np.round(z,3), "probability", np.round(prob*100,3), "log(Lprime)", np.round(np.log10(Lprime),3), "log(Mmol)",np.round(np.log10(MH2),3),"log(L10prime)", np.round(np.log10(L10prime),3) )
 		else: 
-			prob , Lprime,L10prime, MH2= 0,0,0,0
-		array=[prob,Lprime,z,L10prime, MH2]
+			prob , Lprime,L10prime= 0,0,0
+		array=[prob,Lprime,z,L10prime,comp_coef]
+		#results_array[l][n][:]
+		#print "array", array
 		for k in range(5):
 			array[k]
 			transitions_array[s][i][k] = array[k]
 
+
 ### use transition array to draw the probable samples
-ntry= 10 # muber of tries for probability drawing
-results_array=np.zeros((S,ntry,3)) #[nprob][z,L'1-0,MH2][ntries]
+ntry= 1000 # muber of tries for probability drawing
+results_array=np.zeros((ntry,S,3)) #[ntries],[nprob][z,L'1-0,MH2, comp]
 nr_detections= np.shape(transitions_array)[0]
 nr_trans = np.shape(transitions_array)[1]
-for l in range(ntry):
+
+####create redhsift bins for roH2 - 
+
+## !!!! TEST !!!
+# ASPECS - like bins egdes
+z_bins = np.array([0,0.5,1.0,2.0,3.,4.])
+# corresponding volume: in these redhsift bins sum the volumes coming from each transition to get Volume [Mpc^3] per z bin
+Volumes  = np.array([20, 20.,20.,20.,20]) #bvolume per redshfi bin
+
+# luminocity bins 0.5 dex
+luminosity_bins = np.arange(8,12.5,0.5)
+
+LFa1, LFa2, LFa3, LFa4, LFa5=np.zeros((1,np.size(luminosity_bins)-1)), np.zeros((1,np.size(luminosity_bins)-1)),np.zeros((1,np.size(luminosity_bins)-1)),np.zeros((1,np.size(luminosity_bins)-1)),np.zeros((1,np.size(luminosity_bins)-1))
+LFall = np.zeros((1,np.size(luminosity_bins)-1))
+for l in range(ntry): #realsations of the sample
+	lco10_sample, zsmample=[],[]
 	for n in range(nr_detections):
 		P,prob = [],[]
 		#for each detection
@@ -196,9 +213,130 @@ for l in range(ntry):
 
 		#print I, transitions_array[n][I][:]
 		for k in range(3):
-			results_array[n][l][k] = transitions_array[n][I][k+2]
-print np.log10(results_array.T[:][2][0])
+			results_array[l][n][k] = transitions_array[n][I][k+2] #[z,L'(1-0), completnes]
 
+	#general LF
+	ncounts_all= np.zeros((1,np.size(luminosity_bins)-1))
+	for j in range(np.size(luminosity_bins)-1):
+
+		for i in range(nr_detections):
+			lum = results_array[l][i][1]
+			comp = results_array[l][i][2]
+			#print lum,comp
+			if lum > 0:
+				#print np.log10(lum)
+				if luminosity_bins[j] <= np.log10(lum) <  luminosity_bins[j+1]:
+					
+					ncounts_all.T[j] += 1./comp
+				
+	LFa = ncounts_all*0.9/Volume		
+	LFall = np.vstack((LFall,LFa))	
+
+	#LCO'(1-0) sample, divide into z bins
+	# lco bins, get indexes of the detections from the bigger array
+	l1,l2,l3,l4,l5=np.array([[0,0]]),np.array([[0,0]]),np.array([[0,0]]),np.array([[0,0]]),np.array([[0,0]])
+	#divide ito redshift bins
+	z1,z2  = z_bins[0],z_bins[1]
+	for n in range(nr_detections):
+			if  z_bins[0] <= results_array[l][n][0] < z_bins[1]:
+				l1 = np.vstack((l1, [np.log10(results_array[l][n][1]),results_array[l][n][2]]))
+
+			elif z_bins[1]  <= results_array[l][n][0] < z_bins[2]:
+				l2 = np.vstack((l2, [np.log10(results_array[l][n][1]),results_array[l][n][2]]))
+			elif z_bins[2]  <= results_array[l][n][0] < z_bins[3]:
+				l3 = np.vstack((l3, [np.log10(results_array[l][n][1]),results_array[l][n][2]]))			
+			elif z_bins[3]  <= results_array[l][n][0] < z_bins[4]:
+				l4 = np.vstack((l4, [np.log10(results_array[l][n][1]),results_array[l][n][2]]))			
+			elif z_bins[4]  <= results_array[l][n][0] < z_bins[5]:
+				l5 = np.vstack((l5, [np.log10(results_array[l][n][1]),results_array[l][n][2]]))			
+#	print np.shape(l1)[0]
+
+	# CO(1-0) LF for each z bin 
+	# luminoity finction for each redshfit bin, luminocity bins every 0.5 dex
+
+	# bin 1 0- 0.5
+	#if np.shape(l1)[0] > 1:
+	#	for j in np.size(luminosity_bins-1):
+	#		print 0
+	#bin 0.5 - 1
+
+	vol = 20. ## !!!!!! repair	
+	if np.shape(l1)[0] > 1:
+		ncounts= np.zeros((1,np.size(luminosity_bins)-1))
+		for j in range(np.size(luminosity_bins)-1):
+
+			for i in range(np.size(l2.T[0])):
+				if l1.T[0][i] > 0:
+					if luminosity_bins[j] <= l1.T[0][i] <  luminosity_bins[j+1]:
+						
+						ncounts.T[j] += 1./l1.T[1][i]
+		LF1 = ncounts*0.9/vol		
+		LFa1 = np.vstack((LFa1,LF1))	
+	if np.shape(l2)[0] > 1:
+		ncounts = np.zeros((1,np.size(luminosity_bins)-1))
+		for j in range(np.size(luminosity_bins)-1):
+
+			for i in range(np.size(l2.T[0])):
+				if l2.T[0][i] > 0:
+					if luminosity_bins[j] <= l2.T[0][i] <  luminosity_bins[j+1]:
+						
+						ncounts.T[j] += 1./l2.T[1][i]
+	
+		LF2 = ncounts*0.9/vol	
+		LFa2 = np.vstack((LFa2,LF2))	
+	if np.shape(l3)[0] > 1:
+		ncounts = np.zeros((1,np.size(luminosity_bins)-1))
+		for j in range(np.size(luminosity_bins)-1):
+
+			for i in range(np.size(l3.T[0])):
+				if l3.T[0][i] > 0:
+					if luminosity_bins[j] <= l3.T[0][i] <  luminosity_bins[j+1]:
+						
+						ncounts.T[j] += 1./l3.T[1][i]
+	
+		LF3 = ncounts*0.9/vol
+		LFa3 = np.vstack((LFa3,LF3))	
+	if np.shape(l4)[0] > 1:
+		ncounts = np.zeros((1,np.size(luminosity_bins)-1))
+		for j in range(np.size(luminosity_bins)-1):
+
+			for i in range(np.size(l4.T[0])):
+				if l4.T[0][i] > 0:
+					if luminosity_bins[j] <= l4.T[0][i] <  luminosity_bins[j+1]:
+						ncounts.T[j] += 1./l4.T[1][i]
+	
+		LF4 = ncounts*0.9/vol
+		LFa4 = np.vstack((LFa4,LF4))	
+	if np.shape(l5)[0] > 1:
+		ncounts = np.zeros((1,np.size(luminosity_bins)-1))
+		for j in range(np.size(luminosity_bins)-1):
+
+			for i in range(np.size(l5.T[0])):
+				if l5.T[0][i] > 0:
+					if luminosity_bins[j] <= l5.T[0][i] <  luminosity_bins[j+1]:
+						
+						ncounts.T[j] += 1./l5.T[1][i]
+	
+		LF5 = ncounts*0.9/vol
+		LFa5 = np.vstack((LFa5,LF5))	
+
+### mean and sigmas of LF 
+plt.figure(1)
+
+for i in range(np.size(LFall[0])):
+	#print LFa2.T
+	#print np.mean(LFall.T[i]), np.std(LFall.T[i])
+
+	if np.mean(LFall.T[i]) > 0 :
+		plt.errorbar(luminosity_bins[i], np.log10(np.mean(LFall.T[i])), fmt='o',c='navy')
+
+	
+	plt.plot(luminosity_bins[i], np.log10(np.max(LFall.T[i])), 'ro')
+	plt.plot(luminosity_bins[i], np.log10(np.min(LFall.T[i])), 'ro')
+	plt.ylim([-6,1])
+	plt.xlim([7.5,12.5])
+plt.show()
+"""
 plt.figure(1, figsize=(8,8))
 Mh2_array=[results_array.T[:][0][l],results_array.T[:][2][l]]
 for l in range(ntry):
@@ -210,9 +348,7 @@ for l in range(ntry):
 
 Mh2_array_sort = np.sort(Mh2_array)
 print Mh2_array_sort[0]
+
+plt.show()
 """
-
-
-#plt.show()
-
 	
