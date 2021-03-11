@@ -1,0 +1,9 @@
+# no, filename, field, x	y	Z	Sn (peak Flux)/ local rms	Width (channel)	width [km/s] width_error(1 chan width) [km/s]  F0 [GHz] w50[channel] Int_flux [mJy km/s] int_flux_err[mJy km/s] rms [mJy/beam]	Det_NO category  spec_file
+2 uid___A001_X5ac_X38f.cube_23.J0006-0623_B7		J0006-0623	 38	116	 28	5.926	9	35		5	348.463	2.2	 107.  22	0.354	4	MAYBE J0006-0623.txt
+17 uid___A001_X5ac_X138c.cube_0.J0510+1800_B7		J0510+1800	84	147	49	5.14	7	35		4	344.570	2.3	 260   43	0.601	1m	YES	J0510+1800.txt
+25 uid___A001_Xa0_X107.cube_1.J1342-2900_B7 		J1342-2900	137	 54	 69	4.105	10	31		3	344.365	5.1	 201   67 	-999	5	YES	J1342-2900.txt
+26 uid___A001_Xa0_X54.cube_0.J1651+0129_B7		J1651+0129	 18	 93	 85	4.445	7	28.5		14	346.718 17	 161   29	0.697	5	YES		J1651+0129.txt
+37 uid___A001_X5ad_X888.cube_12.J1924-2914_B6 		J1924-2914	152	 32	194	4.891	10	61		15	233.453 1.6	 116	61	0.225	9	YES	J1924-2914.txt
+41 uid___A001_X5ad_Xea5.cube_01.J2357-5311_B4		J2357-5311	239	 98	183	6.655	14	198		26	135.913 5.3	 93   16	0.105	7	YES	J2357-5311.txt
+7 uid___A001_X5ac_X1fe_04.cube_01.J0334-4008_B3		J0334-4008	 29	108	124	5.95	7	255		43	97.228	5.0	 243   55	0.151	4	yes	J0334-4008-185.txt
+5 uid___A001_X5ac_X1fe_02.cube_23.J0334-4008_B3		J0334-4008	126	125	110	6.371	4	62		9	101.670	1.9	 62   11	0.188  10	yes	J0334-4008-013.txt

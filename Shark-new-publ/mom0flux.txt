@@ -1,0 +1,9 @@
+J0006-mom0.fits  0.354
+J0510-mom0.fits  0.000601
+J1342-mom0.fits  0.00062
+J1651-mom0.fits  0.0007
+J1924-mom0.fits  0.0002
+J2357-mom0.fits  0.0002
+
+
+

@@ -1,0 +1,17 @@
+#H2 (molecular hydrogen) density as a function of redshift for the EAGLE simulations. Total H2 densities and fractions are presented for the two models used to describe the molecular gas fraction (Gnedin & Kravtson 2011; Krumholz 2013). Reference Lagos et al. (2015; https://ui.adsabs.harvard.edu/abs/2015MNRAS.452.3815L/abstract)
+#H2 density in units of Msun/cMpc^3, with cMpc being comoving Mpc.
+#redshift H2_density(GK11)       H2_density(K13)
+      0.00000   5.02346e+06       3.73820e+06      
+     0.100000   6.38590e+06       4.86465e+06      
+     0.500000   1.22385e+07       6.72568e+06      
+     0.620000   1.35413e+07       1.00384e+07      
+     0.870000   1.73299e+07       1.12858e+07      
+      1.00000   1.74944e+07       1.31524e+07      
+      1.26000   1.76589e+07       1.50376e+07      
+      1.49000   1.65510e+07       1.58924e+07      
+      1.74000   1.41255e+07       1.53107e+07      
+      2.48000   8.57021e+06       1.34270e+07      
+      3.02000   5.17329e+06       1.22710e+07      
+      3.53000   2.95095e+06       1.09129e+07      
+      3.98000   1.80903e+06       9.07820e+06      
+      4.49000   1.07088e+06       5.89236e+06    

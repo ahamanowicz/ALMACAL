@@ -1,0 +1,6 @@
+J0006-0623.large.mom0.fits
+J0510+1800.large.mom0.fits
+J1342-2900.large.mom0.fits
+J1651+0129.large.mom0.fits
+J1924-2914.large.mom0.fits
+J2356-5311.large.mom0.fits

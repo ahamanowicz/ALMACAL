@@ -1,0 +1,46 @@
+# test CO transitions
+# f0 [GHz], integrated flux [Jy km/s], flux_err ,FWHM [km/s], FWHM_err[km/s], z, J, reference, survey,old high mass / new high mass / new flux lim  
+C1,   33.142, 0.076, 0.01, 570, 80, 2.480, 1, Lentati15, COLDz, 	+ + + 	
+C2,   36.609, 0.170, 0.02, 390, 40, 5.297, 2, Pavesi18, COLDz,  	? - -	P1: Starburst galaxy, high-z SMG AzTEC-3
+C3,   31.430, 0.110, 0.03, 430, 80, 2.668, 1, Pavesi18, COLDz, 	+ + -
+C4,   33.151, 0.130, 0.03, 830, 130, 2.477, 1, Pavesi18, COLDz,  	+ + +
+C5,   38.822, 0.370, 0.10, 240, 50, 1.969, 1, Pavesi18, COLDz,		+ - -
+C6,   36.578, 0.344, 0.074, 610, 100, 5.303, 2, Pavesi18, COLDz, 	? - -		P2: SGM extremely dust obscured, not detected in NIR, VIs etc, probably member of protocluster
+C7,   33.051, 0.340, 0.12, 580, 120, 2.488, 1, Pavesi18, COLDz,   	+ - -	Blue compact dwarf or merger dot dusty sf 
+C8,   37.283, 0.148, 0.057,490, 140, 5.183, 2, Pavesi18, COLDz,  	? - -	P3: SMG, the brightest sub galaxy in HDF!
+A1,   97.567, 0.720, 0.03, 500, 30, 2.543, 3, Walter16, ASPECS, 	- - -	(other J lines)
+A2,   90.443, 0.440, 0.08, 540, 30, 1.551, 2, Walter16, ASPECS, 	+ + -	spec conf
+A3,  110.431, 0.180, 0.02, 82, 25, 1.088, 2, Walter16, ASPECS, 	- + +	spec conf
+A4,  102.587, 0.240, 0.02, 120, 25, 2.370, 3, Walter16, ASPECS, 	- - - 	matching with grism data
+A5,  227.617, 0.790, 0.04, 463, 80, 2.543, 7, Walter16, ASPECS, 	- - -	#+80, -10
+A6,  260.027, 1.100, 0.05, 478, 11, 2.543, 8, Walter16, ASPECS, 	- - -	#+11 -70
+A7,  225.181, 0.220, 0.02, 101, 18, 0.540, 3, Walter16, ASPECS, 	- - +/-	matching with grism
+A8,   97.600, 1.020, 0.04, 517, 21, 2.543, 3, Aravena19, ASPECS, 	- - -	
+A9,   99.498, 0.470, 0.04, 277, 26, 1.317, 2, Aravena19, ASPECS, 	+ + +/-
+A10, 100.144, 0.410, 0.04, 368, 37, 2.453, 3, Aravena19, ASPECS, 	- - -	
+A11,  95.500, 0.890, 0.07, 498, 47, 1.414, 2, Aravena19, ASPECS, 	+ + -	
+A12,  90.407, 0.650, 0.06, 617, 58, 1.550, 2, Aravena19, ASPECS, 	+ + -	
+A13, 110.042, 0.480, 0.06, 307, 33, 1.095, 2, Aravena19, ASPECS,  	+ + +	
+A14,  93.534, 0.760, 0.09, 609, 73, 2.697, 3, Aravena19, ASPECS, 	- - -	mas=11 sfr=187, av=3.2
+A15,  96.783, 0.160, 0.03, 50, 8, 1.382, 2, Aravena19, ASPECS, 	+ + +
+A16,  93.509, 0.400, 0.04, 174, 17, 2.698, 3, Aravena19, ASPECS, 	- - -	2-1 `z=1.465 AGN sfr=318
+A17, 113.175, 0.590, 0.07, 460, 49, 1.037, 2, Aravena19, ASPECS, 	+ + +	
+A18, 109.990, 0.160, 0.03, 40, 12, 1.096, 2, Aravena19, ASPECS, 	- + +	3-2 z=2.144, mas=10.2 sfr=10 av=0.8
+A19,  96.753, 0.140, 0.02, 251, 40, 2.574, 3, Aravena19, ASPECS, 	- - -	2-1 z=1.383, AGN
+A20, 100.205, 0.130, 0.02, 360, 49, 3.601, 4, Aravena19, ASPECS, 	- - -	2-1 z=1.3 |m=9.8, sfr41, av=1.4 gas rich?!
+A21, 109.885, 0.350, 0.05, 355, 52, 1.098, 2, Aravena19, ASPECS, 	+ + +	
+A22, 109.990, 0.210, 0.03, 260, 39, 1.096, 2, Aravena19, ASPECS, 	+ + +	 AGN
+A23, 100.496, 0.080, 0.01, 125, 28, 1.294, 2, Aravena19, ASPECS, 	- - +	3-2 z =2.4 | m=10.3, sfr=11 av0.5
+P1,  104.582, 0.599, 0.139, 590, 104, 3.408, 4, Lenkic19, PHIBSS2,	? - -  R=1.0
+P2,  135.900, 0.613, 0.146, 151, 27, 0.696, 2, Lenkic19, PHIBSS2,	? - + ( 3 and 2 similar prob)
+P3,  142.039, 0.341, 0.082, 227, 41, 0.623, 2, Lenkic19, PHIBSS2,	? - +
+P4,  107.631, 0.323, 0.091, 309, 66, 1.142, 2, Lenkic19, PHIBSS2,	? + +
+P5,  153.419, 0.315, 0.100, 167, 40, 1.254, 3, Lenkic19, PHIBSS2,	? + +/-
+P6,  153.676, 0.392, 0.127, 131, 32, 1.250, 3, Lenkic19, PHIBSS2,	? + +/-
+P7,  136.249, 0.696, 0.226, 588, 144, 0.692, 2, Lenkic19, PHIBSS2,	? + +
+P8,  109.715, 0.297, 0.110, 155, 43, 1.101, 2, Lenkic19, PHIBSS2,	? + +
+P9,  104.643, 1.840, 0.247, 948, 96, 2.305, 3, Lenkic19, PHIBSS2,	? - -
+P10, 140.127, 0.635, 0.158, 791, 150, 3.934, 6, Lenkic19, PHIBSS2,	? - -
+P11, 137.437, 0.669, 0.248, 165, 47, 0.672, 2, Lenkic19, PHIBSS2,	? + +
+P12, 139.610, 0.563, 0.207, 171, 47, 0.651, 2, Lenkic19, PHIBSS2,	? - +
+P13, 132.142, 0.365, 0.112, 108, 25, 1.616, 3, Lenkic19, PHIBSS2,	? + +
